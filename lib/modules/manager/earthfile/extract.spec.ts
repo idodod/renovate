@@ -640,6 +640,26 @@ describe('modules/manager/earthfile/extract', () => {
       ]);
     });
 
+    it('handles FROM with version in a global ARG value', () => {
+      const res = extractPackageFile(
+        'ARG\t--global\tVARIANT="1.60.0-bullseye" \nFROM\trust:${VARIANT}\n',
+        '',
+        {},
+      )?.deps;
+      expect(res).toEqual([
+        {
+          autoReplaceStringTemplate:
+            'ARG\t--global\tVARIANT="{{#if newValue}}{{newValue}}{{/if}}{{#if newDigest}}@{{newDigest}}{{/if}}" \n',
+          currentDigest: undefined,
+          currentValue: '1.60.0-bullseye',
+          datasource: 'docker',
+          depName: 'rust',
+          depType: 'base',
+          replaceString: 'ARG\t--global\tVARIANT="1.60.0-bullseye" \n',
+        },
+      ]);
+    });
+
     it('handles FROM with version in ARG default value', () => {
       const res = extractPackageFile(
         'ARG IMAGE_VERSION=${IMAGE_VERSION:-ubuntu:xenial}\nfrom ${IMAGE_VERSION}\n',
